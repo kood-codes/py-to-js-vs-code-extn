@@ -1,8 +1,9 @@
 {
-	"name": "js-translator",
-	"displayName": "jsTranslator",
-	"description": "",
-	"version": "0.0.1",
+	"name": "vs-code-py-js-translator",
+	"publisher": "koodal",
+	"displayName": "py2jsTranslator",
+	"description": "Extension to convert python to javascript",
+	"version": "1.0.0",
 	"engines": {
 		"vscode": "^1.37.0"
 	},
@@ -10,13 +11,13 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:jsTranslator.start"
+		"onCommand:py2jsTranslator.start"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "jsTranslator.start",
+				"command": "py2jsTranslator.start",
 				"title": "Convert to javascript",
 				"category": "Js Translator",
 				"icon": {
@@ -28,9 +29,9 @@
 		"menus": {
 			"editor/title": [
 				{
-					"command": "jsTranslator.start",
+					"command": "py2jsTranslator.start",
 					"when": "editorLangId == python",
-					"alt": "jsTranslator.start",
+					"alt": "py2jsTranslator.start",
 					"group": "navigation"
 				}
 			]
@@ -47,21 +48,28 @@
 		"@types/glob": "^7.1.1",
 		"@types/mocha": "^5.2.6",
 		"@types/node": "^10.12.21",
+		"@types/prettier": "^2.3.2",
 		"@types/vscode": "^1.37.0",
 		"glob": "^7.1.4",
 		"mocha": "^6.1.4",
-		"typescript": "^3.3.1",
 		"tslint": "^5.12.1",
-		"vscode-test": "^1.0.2"
+		"typescript": "^3.7.0",
+		"vscode-test": "^1.0.2",
+		"oniguruma": "^7.0.0"
 	},
 	"dependencies": {
 		"@babel/core": "^7.4.5",
 		"@babel/generator": "^7.4.4",
 		"@babel/node": "^7.4.5",
+		"@babel/parser": "^7.7.3",
 		"@babel/plugin-proposal-export-default-from": "^7.2.0",
 		"@babel/plugin-transform-modules-commonjs": "^7.4.4",
-		"antlr-parser-generator": "file:../antlr-parser-generator/antlr-parser-generator-1.0.0.tgz",
+		"@babel/traverse": "^7.7.2",
+		"@types/antlr4": "^4.7.2",
+		"@types/babel__core": "^7.1.15",
 		"antlr4": "^4.7.2",
+		"prettier": "^1.19.1",
+		"py-to-js": "file:py-to-js-1.0.0.tgz",
 		"shiki": "^0.1.4"
 	}
 }

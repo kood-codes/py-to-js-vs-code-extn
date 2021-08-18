@@ -1,6 +1,32 @@
 import * as vscode from "vscode";
 import * as shiki from "shiki";
-const { getJsAst, toJavaScript } = require("antlr-parser-generator/index");
+import traverse from "@babel/traverse";
+import { parse } from "@babel/parser";
+import { format } from "prettier";
+import { getJsAst, toJavaScript } from "py-to-js";
+
+const jsVisitor = {
+  FunctionDeclaration({ node }: any) {
+    let name = node.id.name;
+    console.log(node.id.name);
+    if (name.indexOf("_") > -1) {
+      node.id.name = name
+        .split("_")
+        .map((part: string, i: number) => {
+          if (i > 0) {
+            part = part[0].toUpperCase() + part.substr(1);
+          }
+          return part;
+        })
+        .join("");
+    }
+  },
+  CallExpression({ node }: any) {
+    if (node.callee.name === "print") {
+      node.callee.name = "console.log";
+    }
+  },
+};
 
 let currentPanel: vscode.WebviewPanel | undefined = undefined;
 
@@ -8,7 +34,7 @@ let currentPanel: vscode.WebviewPanel | undefined = undefined;
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
-    vscode.commands.registerCommand("jsTranslator.start", async () => {
+    vscode.commands.registerCommand("py2jsTranslator.start", async () => {
       const columnToShowIn = vscode.window.activeTextEditor
         ? vscode.window.activeTextEditor.viewColumn
         : undefined;
@@ -21,14 +47,33 @@ export function activate(context: vscode.ExtensionContext) {
         const text = editor.document.getText();
 
         const ast = getJsAst(text);
-        const jsCode = toJavaScript(ast);
+        let jsCode;
+        try {
+          jsCode = format(toJavaScript(ast), {
+            parser: "babel",
+            singleQuote: true,
+          });
+          let jsAst = parse(jsCode, {
+            presets: ["es2015"],
+            allowImportExportEverywhere: true,
+            classProperties: true,
+          } as any);
+          traverse(jsAst, jsVisitor);
+          jsCode = format(toJavaScript(jsAst), {
+            parser: "babel",
+            singleQuote: true,
+          });
+        } catch (err) {
+          jsCode = toJavaScript(ast);
+        }
+        console.log(jsCode);
 
         currentPanel = vscode.window.createWebviewPanel(
-          "jsTranslator", // Identifies the type of the webview. Used internally
-          "Js Translator", // Title of the panel displayed to the user
+          "py2jsTranslator", // Identifies the type of the webview. Used internally
+          "Py 2 Js Translator", // Title of the panel displayed to the user
           vscode.ViewColumn.Beside, // Editor column to show the new webview panel in.
           {
-            enableScripts: true
+            enableScripts: true,
           } // Webview options. More on these later.
         );
         currentPanel.title = "Preview";
@@ -49,7 +94,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 async function getWebviewContent(jsCode = "") {
   let highlighter: any = await shiki.getHighlighter({
-    theme: "nord"
+    theme: "nord",
   });
 
   let code = highlighter.codeToHtml(jsCode, "js");
